@@ -9,7 +9,7 @@ char filename_buffer[BUF_SIZE];
 
 int main(int argv, char * argc[]){
   Lexer lexer;
-  Token tokens[BUF_SIZE];
+  Token tokens[BUF_SIZE]; // fix later
   size_t token_count = 0;
   if (argv < 2) {
     printf("Usages: ./sea filename.sea\n");
@@ -22,56 +22,23 @@ int main(int argv, char * argc[]){
     return 1;
   }
   sea_lexer_init(&lexer, file_buffer);
-  while (fgets(file_buffer, BUF_SIZE, file) != NULL){
+  while (fgets(file_buffer, BUF_SIZE, file) != NULL){ // for each line
     lexer.start = file_buffer;
     lexer.current = file_buffer;
-    while (*lexer.current != '\0') {
-      while (*lexer.current == ' ' || *lexer.current == '\t' || *lexer.current == '\r' || *lexer.current == '\n') {
-        if (*lexer.current == '\n') {
-          lexer.line++;
-          lexer.col = 1;
-        } else {
-          lexer.col++;
-        }
-        lexer.current++;
-        lexer.start = lexer.current;
+    Token token_buff[256];
+    size_t token_buff_count = 0;
+    if (sea_lexer_parse_token(token_buff, &token_buff_count, &lexer)){
+      for (size_t i = 0; i < token_buff_count; i++) {
+        tokens[token_count++] = token_buff[i];
       }
-
-      if (*lexer.current == '\0') {
-        break;
-      }
-
-      if ((*lexer.current >= '0' && *lexer.current <= '9') ||
-          (*lexer.current >= 'a' && *lexer.current <= 'z') ||
-          (*lexer.current >= 'A' && *lexer.current <= 'Z') ||
-          *lexer.current == '_') {
-        Token token = sea_lexer_parse_token(&lexer);
-        if (token_count < BUF_SIZE) {
-          tokens[token_count++] = token;
-        }
-        lexer.start = lexer.current;
-        continue;
-      }
-
-      if (token_count < BUF_SIZE) {
-        tokens[token_count].type = TOK_ERROR;
-        tokens[token_count].start = lexer.current;
-        tokens[token_count].length = 1;
-        tokens[token_count].line = lexer.line;
-        tokens[token_count].col = lexer.col;
-        token_count++;
-      }
-      lexer.current++;
-      lexer.start = lexer.current;
-      lexer.col++;
+    } else {
+      printf("Error: Failed to parse token at line %d, col %d\n", lexer.line, lexer.col);
     }
   }
-
   for (size_t i = 0; i < token_count; i++) {
-    printf("Token: %.*s\n", (int)tokens[i].length, tokens[i].start);
-    printf("Type: %s\n", token_type_name(tokens[i].type));
+    Token token = tokens[i];
+    printf("Token Num: %zu Type: %s, Line: %d, Col: %d\n", i, token_type_name(token.type), token.line, token.col);
   }
-
   fclose(file);
   return 0;
 }

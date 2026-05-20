@@ -1,11 +1,11 @@
 #include "lexer.h"
 
 void sea_lexer_init(Lexer * lexer, const char * source){
-  lexer->source = source;
-  lexer->start = source;
-  lexer->current = source;
-  lexer->line = 1;
-  lexer->col = 1;
+  lexer->source = source; // source: the entire file content
+  lexer->start = source; // start: the beginning of the current token
+  lexer->current = source; // current: the current position in the source
+  lexer->line = 1; // line: the current line number
+  lexer->col = 1; // col: the current column number
 }
 
 char sea_lexer_peek(Lexer * lexer){
@@ -24,13 +24,16 @@ static char sea_lexer_advance(Lexer *lexer){
     return *lexer->current;
 }
 
-static bool sea_isdigit(char c){
-    return c >= '0' && c <= '9';
+static bool in_string(const char * str, char c) {
+  while (*str) {
+    if (*str == c) return true;
+    str++;
+  }
+  return false;
 }
 
-static bool sea_isalpha(char c){
-  return (c >= 'a' && c <= 'z') ||
-    (c >= 'A' && c <= 'Z') || c == '_';
+static bool sea_isalpha(char c) {
+  return (in_string(UPPER_ALPHABET, c) || in_string(LOWER_ALPHABET, c) || c == '_');
 }
 
 static Token make_token(Lexer * lexer, token_t type){
@@ -57,40 +60,160 @@ token_t keyword_scan(const char * token_buffer){
   if (strcmp(token_buffer, "extern") == 0) return TOK_KW_EXTERN;
   if (strcmp(token_buffer, "sizeof") == 0) return TOK_KW_SIZEOF;
   if (strcmp(token_buffer, "namespace") == 0) return TOK_KW_NAMESPACE;
+  if (strcmp(token_buffer, "float") == 0) return TOK_KW_FLOAT;
+  if (strcmp(token_buffer, "void") == 0) return TOK_KW_VOID;
+  if (strcmp(token_buffer, "char") == 0) return TOK_KW_CHAR;
+  if (strcmp(token_buffer, "bool") == 0) return TOK_KW_BOOL;
+  if (strcmp(token_buffer, "double") == 0) return TOK_KW_DOUBLE;
   return TOK_ERROR;
 }
 
-Token sea_lexer_parse_token(Lexer * lexer){
-  Token token;
-  char token_buffer[256];
-  int token_buffer_index = 0;
+static token_t single_char_token(char c)
+{
+    switch (c) {
+        case '(': return TOK_LPAREN;
+        case ')': return TOK_RPAREN;
+        case '{': return TOK_LBRACE;
+        case '}': return TOK_RBRACE;
+        case '[': return TOK_LBRACKET;
+        case ']': return TOK_RBRACKET;
+        case ';': return TOK_SEMICOLON;
+        case ',': return TOK_COMMA;
+        case '.': return TOK_DOT;
+        case ':': return TOK_COLON;
+        case '+': return TOK_PLUS;
+        case '-': return TOK_MINUS;
+        case '*': return TOK_STAR;
+        case '/': return TOK_SLASH;
+        case '%': return TOK_PERCENT;
+        case '=': return TOK_ASSIGN;
+        case '<': return TOK_LT;
+        case '>': return TOK_GT;
+        default:  return TOK_ERROR;
+    }
+}
+
+bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer * lexer){
   char c;
-  make_token(lexer, TOK_ERROR);
-  while ((c = sea_lexer_peek(lexer)) != '\0'){
+  while ((c = sea_lexer_peek(lexer)) != '\0') {
+    lexer->start = lexer->current;
     if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
       sea_lexer_advance(lexer);
-      lexer->start = lexer->current;
       continue;
     }
-    if (sea_isdigit(c)){
-      while (sea_isdigit(c)) {
-        c = sea_lexer_advance(lexer);
+    if (in_string(DIGITS, c)) {
+      while (in_string(DIGITS, sea_lexer_peek(lexer))) {
+        sea_lexer_advance(lexer);
       }
-      token = make_token(lexer, TOK_INT_LITERAL);
-      return token;
-    }
-    if (sea_isalpha(c)){
-      while (sea_isalpha(c)) {
-        if (token_buffer_index < 255) {
-          token_buffer[token_buffer_index++] = c;
+      if (sea_lexer_peek(lexer) == '.' && in_string(DIGITS, lexer->current[1])) {
+        sea_lexer_advance(lexer); 
+        while (in_string(DIGITS, sea_lexer_peek(lexer))) {
+          sea_lexer_advance(lexer);
         }
-        c = sea_lexer_advance(lexer);
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_FLOAT_LITERAL);
       }
-      token_buffer[token_buffer_index] = '\0';
-      printf("Token buffer: %s\n", token_buffer);
-      token = make_token(lexer, keyword_scan(token_buffer));
-      return token;
+      else {
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INT_LITERAL);
+      }
+      continue;
     }
+    if (sea_isalpha(c)) {
+      while (sea_isalpha(sea_lexer_peek(lexer)) || in_string(DIGITS, sea_lexer_peek(lexer))) {
+        sea_lexer_advance(lexer);
+      }
+
+      char keyword_buffer[256]; // fix later
+      size_t length = (size_t)(lexer->current - lexer->start);
+      strncpy(keyword_buffer, lexer->start, length);
+      keyword_buffer[length] = '\0';
+      token_t type = keyword_scan(keyword_buffer);
+      if (type != TOK_ERROR) {
+        token_buff[(*token_buff_count)++] = make_token(lexer, type);
+      } else {
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_IDENTIFIER);
+      }
+      continue;
+    }
+    if (in_string(SYMBOLS, c)) {
+      switch (c) {
+          case ':':
+              if (lexer->current[1] == ':') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_SCOPE);
+                  continue;
+              }
+              break;
+
+          case '+':
+              if (lexer->current[1] == '+') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INCREMENT);
+                  continue;
+              }
+              break;
+
+          case '-':
+              if (lexer->current[1] == '-') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_DECREMENT);
+                  continue;
+              }
+
+              if (lexer->current[1] == '>') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_ARROW);
+                  continue;
+              }
+              break;
+
+          case '=':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_EQ);
+                  continue;
+              }
+              break;
+
+          case '!':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_NEQ);
+                  continue;
+              }
+              break;
+
+          case '<':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_LTE);
+                  continue;
+              }
+              break;
+
+          case '>':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_GTE);
+                  continue;
+              }
+              break;
+      }
+      sea_lexer_advance(lexer);
+      token_buff[(*token_buff_count)++] = make_token(lexer, single_char_token(c));
+      continue;
+    }
+    printf("Unrecognized character: %c at line %d, col %d\n", c, lexer->line, lexer->col);
+    sea_lexer_advance(lexer);
   }
-  return token;
+  if (*token_buff_count == 0) {
+    return false;
+  } return true;
 }

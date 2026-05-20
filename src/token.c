@@ -11,6 +11,9 @@ const char* token_type_name(token_t token_type){
     case TOK_KW_FN : return "fn";
     case TOK_KW_RETURN : return "return";
     case TOK_KW_NAMESPACE : return "namespace";
+    case TOK_IDENTIFIER : return "identifier";
+    case TOK_INCREMENT : return "++";
+    case TOK_DECREMENT : return "--";
     case TOK_KW_INT : return "int";
     case TOK_KW_FLOAT : return "float";
     case TOK_KW_VOID : return "void";
@@ -39,6 +42,7 @@ const char* token_type_name(token_t token_type){
     case TOK_COMMA : return ",";
     case TOK_DOT : return ".";
     case TOK_COLON : return ":";
+    case TOK_PREPROC : return "#";
     case TOK_SCOPE : return "::";
     case TOK_ARROW : return "->";
     case TOK_PLUS : return "+";
@@ -47,6 +51,11 @@ const char* token_type_name(token_t token_type){
     case TOK_SLASH : return "/";
     case TOK_PERCENT : return "%";
     case TOK_ASSIGN : return "=";
+    case TOK_PLUS_ASSIGN : return "+=";
+    case TOK_MINUS_ASSIGN : return "-=";
+    case TOK_STAR_ASSIGN : return "*=";
+    case TOK_SLASH_ASSIGN : return "/=";
+    case TOK_PERCENT_ASSIGN : return "%=";
     case TOK_EQ : return "==";
     case TOK_NEQ : return "!=";
     case TOK_LT : return "<";
