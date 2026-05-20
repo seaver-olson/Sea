@@ -47,5 +47,6 @@ int main(int argv, char * argc[]){
     printf("Token Num: %zu Type: %s, Line: %d, Col: %d\n", i, token_type_name(token.type), token.line, token.col);
   }
   fclose(file);
+  free(source);
   return 0;
 }
