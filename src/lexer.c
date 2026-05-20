@@ -36,13 +36,13 @@ static bool sea_isalpha(char c) {
   return (in_string(UPPER_ALPHABET, c) || in_string(LOWER_ALPHABET, c) || c == '_');
 }
 
-static Token make_token(Lexer * lexer, token_t type){
+static Token make_token(Lexer * lexer, token_t type, int line, int col) {
   Token token;
   token.type = type;
   token.start = lexer->start;
   token.length = (size_t)(lexer->current - lexer->start);
-  token.line = lexer->line;
-  token.col = lexer->col;
+  token.line = line;
+  token.col = col;
   return token;
 }
 
@@ -88,6 +88,7 @@ static token_t single_char_token(char c)
         case '%': return TOK_PERCENT;
         case '=': return TOK_ASSIGN;
         case '<': return TOK_LT;
+        case '#': return TOK_PREPROC;
         case '>': return TOK_GT;
         default:  return TOK_ERROR;
     }
@@ -96,6 +97,8 @@ static token_t single_char_token(char c)
 bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer * lexer){
   char c;
   while ((c = sea_lexer_peek(lexer)) != '\0') {
+    int start_line = lexer->line;
+    int start_col = lexer->col;
     lexer->start = lexer->current;
     if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
       sea_lexer_advance(lexer);
@@ -110,10 +113,10 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
         while (in_string(DIGITS, sea_lexer_peek(lexer))) {
           sea_lexer_advance(lexer);
         }
-        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_FLOAT_LITERAL);
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_FLOAT_LITERAL, start_line, start_col);
       }
       else {
-        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INT_LITERAL);
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INT_LITERAL, start_line, start_col);
       }
       continue;
     }
@@ -128,9 +131,9 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
       keyword_buffer[length] = '\0';
       token_t type = keyword_scan(keyword_buffer);
       if (type != TOK_ERROR) {
-        token_buff[(*token_buff_count)++] = make_token(lexer, type);
+        token_buff[(*token_buff_count)++] = make_token(lexer, type, start_line, start_col);
       } else {
-        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_IDENTIFIER);
+        token_buff[(*token_buff_count)++] = make_token(lexer, TOK_IDENTIFIER, start_line, start_col);
       }
       continue;
     }
@@ -140,7 +143,7 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == ':') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_SCOPE);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_SCOPE, start_line, start_col);
                   continue;
               }
               break;
@@ -149,7 +152,7 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '+') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INCREMENT);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INCREMENT, start_line, start_col);
                   continue;
               }
               break;
@@ -158,14 +161,14 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '-') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_DECREMENT);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_DECREMENT, start_line, start_col);
                   continue;
               }
 
               if (lexer->current[1] == '>') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_ARROW);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_ARROW, start_line, start_col);
                   continue;
               }
               break;
@@ -174,7 +177,7 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '=') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_EQ);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_EQ, start_line, start_col);
                   continue;
               }
               break;
@@ -183,7 +186,7 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '=') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_NEQ);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_NEQ, start_line, start_col);
                   continue;
               }
               break;
@@ -192,7 +195,7 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '=') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_LTE);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_LTE, start_line, start_col);
                   continue;
               }
               break;
@@ -201,13 +204,13 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
               if (lexer->current[1] == '=') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
-                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_GTE);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_GTE, start_line, start_col);
                   continue;
               }
               break;
       }
       sea_lexer_advance(lexer);
-      token_buff[(*token_buff_count)++] = make_token(lexer, single_char_token(c));
+      token_buff[(*token_buff_count)++] = make_token(lexer, single_char_token(c), start_line, start_col);
       continue;
     }
     printf("Unrecognized character: %c at line %d, col %d\n", c, lexer->line, lexer->col);

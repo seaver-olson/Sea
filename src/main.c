@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "lexer.h"
 
 #define BUF_SIZE 256 // experiment with this num later
 
-char file_buffer[BUF_SIZE];
 char filename_buffer[BUF_SIZE];
 
 int main(int argv, char * argc[]){
@@ -21,19 +21,26 @@ int main(int argv, char * argc[]){
     printf("Error: Failed to open file");
     return 1;
   }
-  sea_lexer_init(&lexer, file_buffer);
-  while (fgets(file_buffer, BUF_SIZE, file) != NULL){ // for each line
-    lexer.start = file_buffer;
-    lexer.current = file_buffer;
-    Token token_buff[256];
-    size_t token_buff_count = 0;
-    if (sea_lexer_parse_token(token_buff, &token_buff_count, &lexer)){
-      for (size_t i = 0; i < token_buff_count; i++) {
-        tokens[token_count++] = token_buff[i];
-      }
-    } else {
-      printf("Error: Failed to parse token at line %d, col %d\n", lexer.line, lexer.col);
-    }
+  //get file size
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file);
+  rewind(file);
+
+  char* source = malloc(file_size + 1);
+  if (source == NULL) {
+    printf("Error: Failed to allocate memory for file content");
+    fclose(file);
+    return 1;
+  }
+  fread(source, 1, file_size, file);
+  source[file_size] = '\0';
+  
+  sea_lexer_init(&lexer, source);
+  if (!sea_lexer_parse_token(tokens, &token_count, &lexer)) {
+    printf("Error: Failed to parse tokens");
+    free(source);
+    fclose(file);
+    return 1;
   }
   for (size_t i = 0; i < token_count; i++) {
     Token token = tokens[i];
