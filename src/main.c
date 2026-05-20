@@ -10,6 +10,7 @@ char filename_buffer[BUF_SIZE];
 int main(int argv, char * argc[]){
   Lexer lexer;
   Token tokens[BUF_SIZE]; // fix later
+  int lexer_error_count = 0;
   size_t token_count = 0;
   if (argv < 2) {
     printf("Usages: ./sea filename.sea\n");
@@ -43,8 +44,16 @@ int main(int argv, char * argc[]){
     return 1;
   }
   for (size_t i = 0; i < token_count; i++) {
+    if (tokens[i].type == TOK_ERROR) {
+      printf("Error: Failed to parse token at line %d, col %d\n", tokens[i].line, tokens[i].col);
+      lexer_error_count++;
+      continue;
+    }
     Token token = tokens[i];
     printf("Token Num: %zu Type: %s, Line: %d, Col: %d\n", i, token_type_name(token.type), token.line, token.col);
+  }
+  if (lexer_error_count > 0) {
+    printf("Total lexer errors: %d\n", lexer_error_count);
   }
   fclose(file);
   free(source);

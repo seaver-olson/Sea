@@ -10,7 +10,7 @@
 #define LOWER_ALPHABET "abcdefghijklmnopqrstuvwxyz"
 #define VAR_SYMS ""
 #define DIGITS "0123456789"
-#define SYMBOLS "+-*/%=(){}[];,.<>!&:#|"
+#define SYMBOLS "+-*/%=(){}[];,.<>!&:#|\"\\"
 
 typedef struct {
   const char * source;

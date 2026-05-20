@@ -4,6 +4,22 @@ namespace calculator {
   float add(float a, float b){
       return a+b;
     }
+
+  typedef struct {
+    float x, y;
+  } Vector2D;
+
+  typedef struct {
+    float x, y, z;
+  } Vector3D;
+
+  int accumulate(int* arr, size_t size) {
+    int sum = 0;
+    for (size_t i = 0; i < size; i++) {
+      sum += arr[i];
+    }
+    return sum;
+  }
 };
 
 int main(){

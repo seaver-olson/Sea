@@ -88,7 +88,7 @@ static token_t single_char_token(char c)
         case '%': return TOK_PERCENT;
         case '=': return TOK_ASSIGN;
         case '<': return TOK_LT;
-        case '#': return TOK_PREPROC;
+        case '#': return TOK_PREPROC; 
         case '>': return TOK_GT;
         default:  return TOK_ERROR;
     }
@@ -139,6 +139,24 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
     }
     if (in_string(SYMBOLS, c)) {
       switch (c) {
+          case '\"':
+              sea_lexer_advance(lexer);
+              while (sea_lexer_peek(lexer) != '\"' && sea_lexer_peek(lexer) != '\0') {
+                  if (sea_lexer_peek(lexer) == '\\') {
+                    if (lexer->current[1] != '\"'){
+                      sea_lexer_advance(lexer); // skip the escape character
+                    }
+                  }
+                  sea_lexer_advance(lexer);
+              }
+              if (sea_lexer_peek(lexer) == '\"') {
+                  sea_lexer_advance(lexer); // consume the closing quote
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_STRING_LITERAL, start_line, start_col);
+              } else {
+                  printf("Unterminated string literal at line %d, col %d\n", start_line, start_col);
+                  return false;
+              }
+              continue;
           case ':':
               if (lexer->current[1] == ':') {
                   sea_lexer_advance(lexer);
@@ -155,6 +173,12 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
                   token_buff[(*token_buff_count)++] = make_token(lexer, TOK_INCREMENT, start_line, start_col);
                   continue;
               }
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_PLUS_ASSIGN, start_line, start_col);
+                  continue;
+              }
               break;
 
           case '-':
@@ -163,8 +187,13 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
                   sea_lexer_advance(lexer);
                   token_buff[(*token_buff_count)++] = make_token(lexer, TOK_DECREMENT, start_line, start_col);
                   continue;
+              } 
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_MINUS_ASSIGN, start_line, start_col);
+                  continue;
               }
-
               if (lexer->current[1] == '>') {
                   sea_lexer_advance(lexer);
                   sea_lexer_advance(lexer);
@@ -208,15 +237,29 @@ bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer 
                   continue;
               }
               break;
+          case '*':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_STAR_ASSIGN, start_line, start_col);
+                  continue;
+              }
+              break;
+          case '/':
+              if (lexer->current[1] == '=') {
+                  sea_lexer_advance(lexer);
+                  sea_lexer_advance(lexer);
+                  token_buff[(*token_buff_count)++] = make_token(lexer, TOK_SLASH_ASSIGN, start_line, start_col);
+                  continue;
+              }
+              break;
       }
       sea_lexer_advance(lexer);
       token_buff[(*token_buff_count)++] = make_token(lexer, single_char_token(c), start_line, start_col);
       continue;
     }
-    printf("Unrecognized character: %c at line %d, col %d\n", c, lexer->line, lexer->col);
+    printf("Unrecognized character: %d at line %d, col %d\n", c, lexer->line, lexer->col);
     sea_lexer_advance(lexer);
   }
-  if (*token_buff_count == 0) {
-    return false;
-  } return true;
+  return true;
 }
