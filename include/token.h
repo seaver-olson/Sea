@@ -1,6 +1,8 @@
 #ifndef SEA_SPEC_TOKENS_H
 #define SEA_SPEC_TOKENS_H
 
+#include <stdbool.h>
+
 #define SEA_SPEC_TOKENS(OP) \
   OP(TK_EOF, "EOF") \
   OP(TK_ERROR, "ERROR")
@@ -85,5 +87,13 @@ typedef enum {
   SEA_TOKEN_LIST(OP)
   #undef OP
 } TokenType;
+
+const char* token_to_string(TokenType type);
+TokenType string_to_token(const char* str);
+bool is_keyword(const char* str);
+bool is_operator(const char* str);
+bool is_punctuation(const char* str);
+bool is_literal(TokenType type);
+
 
 #endif // SEA_SPEC_TOKENS_H

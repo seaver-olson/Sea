@@ -1,67 +1,11 @@
 #include "token.h"
 
-const char* token_type_name(token_t token_type){
-  switch (token_type) {
-    case TOK_ERROR : return "ERROR";
-    case TOK_EOF : return "EOF";
-    case TOK_INT_LITERAL : return "INT LITERAL";
-    case TOK_FLOAT_LITERAL : return "FLOAT LITERAL";
-    case TOK_CHAR_LITERAL : return "CHAR LITERAL";
-    case TOK_STRING_LITERAL : return "STRING LITERAL";
-    case TOK_KW_FN : return "fn";
-    case TOK_KW_RETURN : return "return";
-    case TOK_KW_NAMESPACE : return "namespace";
-    case TOK_IDENTIFIER : return "identifier";
-    case TOK_INCREMENT : return "++";
-    case TOK_DECREMENT : return "--";
-    case TOK_KW_INT : return "int";
-    case TOK_KW_FLOAT : return "float";
-    case TOK_KW_VOID : return "void";
-    case TOK_KW_CHAR : return "char";
-    case TOK_KW_DOUBLE : return "double";
-    case TOK_KW_BOOL : return "bool";
-    case TOK_KW_IF : return "if";
-    case TOK_KW_ELSE : return "else";
-    case TOK_KW_WHILE : return "while";
-    case TOK_KW_FOR : return "for";
-    case TOK_KW_BREAK : return "break";
-    case TOK_KW_CONTINUE : return "continue";
-    case TOK_KW_STRUCT : return "struct";
-    case TOK_KW_ENUM : return "enum";
-    case TOK_KW_CONST : return "const";
-    case TOK_KW_STATIC : return "static";
-    case TOK_KW_EXTERN : return "extern";
-    case TOK_KW_SIZEOF : return "sizeof";
-    case TOK_LPAREN : return "(";
-    case TOK_RPAREN : return ")";
-    case TOK_LBRACE : return "{";
-    case TOK_RBRACE : return "}";
-    case TOK_LBRACKET : return "[";
-    case TOK_RBRACKET : return "]";
-    case TOK_SEMICOLON : return ";";
-    case TOK_COMMA : return ",";
-    case TOK_DOT : return ".";
-    case TOK_COLON : return ":";
-    case TOK_PREPROC : return "#";
-    case TOK_SCOPE : return "::";
-    case TOK_ARROW : return "->";
-    case TOK_PLUS : return "+";
-    case TOK_MINUS : return "-";
-    case TOK_STAR : return "*";
-    case TOK_SLASH : return "/";
-    case TOK_PERCENT : return "%";
-    case TOK_ASSIGN : return "=";
-    case TOK_PLUS_ASSIGN : return "+=";
-    case TOK_MINUS_ASSIGN : return "-=";
-    case TOK_STAR_ASSIGN : return "*=";
-    case TOK_SLASH_ASSIGN : return "/=";
-    case TOK_PERCENT_ASSIGN : return "%=";
-    case TOK_EQ : return "==";
-    case TOK_NEQ : return "!=";
-    case TOK_LT : return "<";
-    case TOK_LTE : return "<=";
-    case TOK_GT : return ">";
-    case TOK_GTE : return ">=";
-  };
-  return "ERROR";
+const char* token_to_string(TokenType type) {
+  switch (type) {
+    #define CASE(type, str) case type: return str;
+    SEA_TOKEN_LIST(CASE)
+    #undef CASE
+    default: return "unknown";
+  }
 }
+
