@@ -1,88 +1,89 @@
-#ifndef SEA_TOKEN_H
-#define SEA_TOKEN_H
+#ifndef SEA_SPEC_TOKENS_H
+#define SEA_SPEC_TOKENS_H
 
-#include <stddef.h>
+#define SEA_SPEC_TOKENS(OP) \
+  OP(TK_EOF, "EOF") \
+  OP(TK_ERROR, "ERROR")
 
+#define SEA_LITERAL_TOKENS(OP) \
+  OP(TK_STRING_LITERAL, "string") \
+  OP(TK_INT_LITERAL, "int") \
+  OP(TK_FLOAT_LITERAL, "float") \
+  OP(TK_CHAR_LITERAL, "char") \
+  OP(TK_IDENTIFIER, "identifier")
+
+#define SEA_KEYWORD_TOKENS(OP) \
+  OP(TK_DT_VOID, "void") \
+  OP(TK_DT_BOOL, "bool") \
+  OP(TK_DT_CHAR, "char") \
+  OP(TK_DT_INT, "int") \
+  OP(TK_DT_FLOAT, "float") \
+  OP(TK_DT_STRING, "string") \
+  OP(TK_DT_STRUCT, "struct") \
+  OP(TK_DT_ENUM, "enum") \
+  OP(TK_KW_RETURN, "return") \
+  OP(TK_KW_TRUE, "true") \
+  OP(TK_KW_FALSE, "false") \
+  OP(TK_KW_NULL, "null") \
+  OP(TK_KW_IF, "if") \
+  OP(TK_KW_ELSE, "else") \
+  OP(TK_KW_FOR, "for") \
+  OP(TK_KW_WHILE, "while") \
+  OP(TK_KW_BREAK, "break") \
+  OP(TK_KW_CONTINUE, "continue") \
+  OP(TK_KW_SWITCH, "switch") \
+  OP(TK_KW_CASE, "case") \
+  OP(TK_KW_DEFAULT, "default") \
+  OP(TK_KW_NAMESPACE, "namespace")
+
+#define SEA_OPERATOR_TOKENS(OP) \
+  OP(TK_PLUS, "+") \
+  OP(TK_MINUS, "-") \
+  OP(TK_STAR, "*") \
+  OP(TK_SLASH, "/") \
+  OP(TK_PERCENT, "%") \
+  OP(TK_EQ, "==") \
+  OP(TK_NEQ, "!=") \
+  OP(TK_LT, "<") \
+  OP(TK_GT, ">") \
+  OP(TK_LTE, "<=") \
+  OP(TK_GTE, ">=") \
+  OP(TK_AND, "&&") \
+  OP(TK_OR, "||") \
+  OP(TK_NOT, "!") \
+  OP(TK_ASSIGN, "=") \
+  OP(TK_PLUS_ASSIGN, "+=") \
+  OP(TK_MINUS_ASSIGN, "-=") \
+  OP(TK_STAR_ASSIGN, "*=") \
+  OP(TK_SLASH_ASSIGN, "/=") \
+  OP(TK_PERCENT_ASSIGN, "%=") \
+  OP(TK_INCREMENT, "++") \
+  OP(TK_DECREMENT, "--")
+
+#define SEA_PUNCTUATION_TOKENS(OP) \
+  OP(TK_LPAREN, "(") \
+  OP(TK_RPAREN, ")") \
+  OP(TK_LBRACE, "{") \
+  OP(TK_RBRACE, "}") \
+  OP(TK_LBRACKET, "[") \
+  OP(TK_RBRACKET, "]") \
+  OP(TK_COLON, ":") \
+  OP(TK_SEMICOLON, ";") \
+  OP(TK_COMMA, ",") \
+  OP(TK_DOT, ".") \
+  OP(TK_ARROW, "->")
+
+#define SEA_TOKEN_LIST(OP) \
+  SEA_SPEC_TOKENS(OP) \
+  SEA_LITERAL_TOKENS(OP) \
+  SEA_KEYWORD_TOKENS(OP) \
+  SEA_OPERATOR_TOKENS(OP) \
+  SEA_PUNCTUATION_TOKENS(OP)
 
 typedef enum {
-  TOK_ERROR,
-  TOK_EOF,
-  TOK_INT_LITERAL,
-  TOK_FLOAT_LITERAL,
-  TOK_CHAR_LITERAL,
-  TOK_STRING_LITERAL,
-  TOK_KW_FN,
-  TOK_KW_RETURN,
-  TOK_KW_NAMESPACE,
-  TOK_IDENTIFIER,
-  TOK_PLUS_ASSIGN,
-  TOK_MINUS_ASSIGN,
-  TOK_STAR_ASSIGN,
-  TOK_SLASH_ASSIGN,
-  TOK_PERCENT_ASSIGN,
-  TOK_INCREMENT,
-  TOK_DECREMENT,
+  #define OP(tok, str) tok,
+  SEA_TOKEN_LIST(OP)
+  #undef OP
+} TokenType;
 
-  TOK_KW_INT,
-  TOK_KW_FLOAT,
-  TOK_KW_VOID,
-  TOK_KW_CHAR,
-  TOK_KW_DOUBLE,
-  TOK_KW_BOOL,
-
-  TOK_KW_IF,
-  TOK_KW_ELSE,
-  TOK_KW_WHILE,
-  TOK_KW_FOR,
-  TOK_KW_BREAK,
-  TOK_KW_CONTINUE,
-
-
-  TOK_KW_STRUCT,
-  TOK_KW_ENUM,
-  TOK_KW_CONST,
-  TOK_KW_STATIC,
-  TOK_KW_EXTERN,
-  TOK_KW_SIZEOF,
-
-  //punctuation
-  TOK_LPAREN,
-  TOK_RPAREN,
-  TOK_LBRACE,
-  TOK_RBRACE,
-  TOK_LBRACKET,
-  TOK_RBRACKET,
-  TOK_SEMICOLON,
-  TOK_COMMA,
-  TOK_DOT,
-  TOK_COLON,
-  TOK_PREPROC, // #
-  TOK_SCOPE,// ::
-  TOK_ARROW,// ->
-  
-  TOK_PLUS,
-  TOK_MINUS,
-  TOK_STAR,
-  TOK_SLASH,
-  TOK_PERCENT,
-  TOK_ASSIGN,// =
-  TOK_EQ,
-  TOK_NEQ,
-  TOK_LT,
-  TOK_LTE,
-  TOK_GT,
-  TOK_GTE
-  
-} token_t;
-
-typedef struct {
-  token_t type;
-  const char * start;
-  size_t length;
-
-  int line;
-  int col;
-} Token;
-
-const char* token_type_name(token_t token_type);
-#endif 
+#endif // SEA_SPEC_TOKENS_H
