@@ -1,29 +1,19 @@
-#ifndef SEA_LEXER_H
-#define SEA_LEXER_H
-
 #include "token.h"
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-
-#define UPPER_ALPHABET "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#define LOWER_ALPHABET "abcdefghijklmnopqrstuvwxyz"
-#define VAR_SYMS ""
-#define DIGITS "0123456789"
-#define SYMBOLS "+-*/%=(){}[];,.<>!&:#|\"\\"
 
 typedef struct {
-  const char * source;
-  const char * start;
-  const char * current;
+  TokenType type;
+  const char* start;
+  int length;
+  int line, col; // start of token
+} Token;
 
-  int line;
-  int col;
+typedef struct {
+  const char* source; 
+  const char* start; 
+  const char* current;
+  int line, col;
 } Lexer;
 
-void sea_lexer_init(Lexer * lexer, const char * source);
-char sea_lexer_peek(Lexer * lexer);
-bool sea_lexer_parse_token(Token * token_buff, size_t * token_buff_count, Lexer * lexer);
+void lexer_init_source(Lexer * lexer, const char * source);
+Token lexer_next_token(Lexer * lexer);
 
-
-#endif 
